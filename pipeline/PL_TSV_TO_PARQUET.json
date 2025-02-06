@@ -146,11 +146,11 @@
 			},
 			"Schema": {
 				"type": "String",
-				"defaultValue": "Seattle_pet"
+				"defaultValue": "DAMG7370_DB"
 			},
 			"Table": {
 				"type": "String",
-				"defaultValue": "seattle_pet_license_stg"
+				"defaultValue": "PET_LICENSE_STAGE"
 			}
 		},
 		"annotations": []
