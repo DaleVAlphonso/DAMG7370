@@ -6,13 +6,11 @@
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
-			"SCHEMA": {
-				"type": "string",
-				"defaultValue": "STAGE"
+			"SchemaName": {
+				"type": "string"
 			},
-			"TABLE": {
-				"type": "string",
-				"defaultValue": "SEATTLE_PET_LIC_STG"
+			"TableName": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
