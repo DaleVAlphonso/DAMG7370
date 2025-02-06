@@ -64,14 +64,8 @@
 						"referenceName": "SnowflakeTable",
 						"type": "DatasetReference",
 						"parameters": {
-							"SchemaName": {
-								"value": "@variables('Schema')",
-								"type": "Expression"
-							},
-							"TableName": {
-								"value": "@variables('Table')",
-								"type": "Expression"
-							}
+							"SchemaName": "DAMG7370_DB",
+							"TableName": "PET_LICENSE_STAGE"
 						}
 					}
 				]
@@ -143,14 +137,6 @@
 			"myFileName": {
 				"type": "String",
 				"defaultValue": "pet_lic.parquet"
-			},
-			"Schema": {
-				"type": "String",
-				"defaultValue": "DAMG7370_DB"
-			},
-			"Table": {
-				"type": "String",
-				"defaultValue": "PET_LICENSE_STAGE"
 			}
 		},
 		"annotations": []
