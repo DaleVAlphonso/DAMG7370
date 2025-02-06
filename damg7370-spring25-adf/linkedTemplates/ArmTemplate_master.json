@@ -1,0 +1,91 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "damg7370-spring25-adf"
+		},
+		"AzureDataLakeStorage_LS_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage_LS'"
+		},
+		"ls_snowflake_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_snowflake'"
+		},
+		"AzureBlobStorage_LS_sasUri": {
+			"type": "secureString",
+			"metadata": "Secure string for 'sasUri' of 'AzureBlobStorage_LS'"
+		},
+		"AzureDataLakeStorage_LS_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://damg7370spring2k25.dfs.core.windows.net/"
+		},
+		"AzureKeyVault_LS_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://damg7370-kv.vault.azure.net/"
+		},
+		"ls_snowflake_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "DAMG7370_DB"
+		},
+		"ls_snowflake_properties_typeProperties_role": {
+			"type": "string",
+			"defaultValue": "DATA_ENGINEER"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "damg7370-spring25-adf_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureDataLakeStorage_LS_accountKey": {
+						"value": "[parameters('AzureDataLakeStorage_LS_accountKey')]"
+					},
+					"ls_snowflake_password": {
+						"value": "[parameters('ls_snowflake_password')]"
+					},
+					"AzureBlobStorage_LS_sasUri": {
+						"value": "[parameters('AzureBlobStorage_LS_sasUri')]"
+					},
+					"AzureDataLakeStorage_LS_properties_typeProperties_url": {
+						"value": "[parameters('AzureDataLakeStorage_LS_properties_typeProperties_url')]"
+					},
+					"AzureKeyVault_LS_properties_typeProperties_baseUrl": {
+						"value": "[parameters('AzureKeyVault_LS_properties_typeProperties_baseUrl')]"
+					},
+					"ls_snowflake_properties_typeProperties_database": {
+						"value": "[parameters('ls_snowflake_properties_typeProperties_database')]"
+					},
+					"ls_snowflake_properties_typeProperties_role": {
+						"value": "[parameters('ls_snowflake_properties_typeProperties_role')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
