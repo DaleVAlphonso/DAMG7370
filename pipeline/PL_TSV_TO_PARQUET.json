@@ -146,11 +146,11 @@
 			},
 			"Schema": {
 				"type": "String",
-				"defaultValue": "stage"
+				"defaultValue": "Seattle_pet"
 			},
 			"Table": {
 				"type": "String",
-				"defaultValue": "seattle_pet_license"
+				"defaultValue": "seattle_pet_license_stg"
 			}
 		},
 		"annotations": []
