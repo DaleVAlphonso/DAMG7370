@@ -78,7 +78,7 @@
 						"referenceName": "SnowflakeTable",
 						"type": "DatasetReference",
 						"parameters": {
-							"SchemaName": "DAMG7370_DB",
+							"SchemaName": "SEATTLE_PET",
 							"TableName": "PET_LICENSE_STAGE"
 						}
 					}
