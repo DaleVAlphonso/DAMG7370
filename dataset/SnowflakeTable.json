@@ -7,10 +7,12 @@
 		},
 		"parameters": {
 			"SCHEMA": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "STAGE"
 			},
 			"TABLE": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "SEATTLE_PET_LIC_STG"
 			}
 		},
 		"annotations": [],
