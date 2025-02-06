@@ -64,8 +64,14 @@
 						"referenceName": "SnowflakeTable",
 						"type": "DatasetReference",
 						"parameters": {
-							"SCHEMA": "STAGE",
-							"TABLE": "SEATTLE_PET_LIC_STG"
+							"SchemaName": {
+								"value": "@variables('Schema')",
+								"type": "Expression"
+							},
+							"TableName": {
+								"value": "@variables('Table')",
+								"type": "Expression"
+							}
 						}
 					}
 				]
@@ -137,6 +143,14 @@
 			"myFileName": {
 				"type": "String",
 				"defaultValue": "pet_lic.parquet"
+			},
+			"Schema": {
+				"type": "String",
+				"defaultValue": "stage"
+			},
+			"Table": {
+				"type": "String",
+				"defaultValue": "seattle_pet_license"
 			}
 		},
 		"annotations": []
