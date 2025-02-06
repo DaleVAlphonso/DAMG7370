@@ -5,8 +5,6 @@
 			{
 				"name": "Parquet_2_Snowflake",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "TSV_2_Parquet",
@@ -59,7 +57,8 @@
 						"linkedServiceName": {
 							"referenceName": "AzureBlobStorage_LS",
 							"type": "LinkedServiceReference"
-						}
+						},
+						"path": "snowstg"
 					}
 				},
 				"inputs": [
