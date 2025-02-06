@@ -28,15 +28,15 @@
 						"type": "ParquetSource",
 						"additionalColumns": [
 							{
-								"name": "Job_Id",
-								"value": "$$FILEPATH"
-							},
-							{
 								"name": "Load_Date",
 								"value": {
 									"value": "@utcNow()",
 									"type": "Expression"
 								}
+							},
+							{
+								"name": "Job_Id",
+								"value": "$$FILEPATH"
 							}
 						],
 						"storeSettings": {
