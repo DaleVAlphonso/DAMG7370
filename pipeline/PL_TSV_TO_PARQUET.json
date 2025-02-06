@@ -26,15 +26,15 @@
 						"type": "ParquetSource",
 						"additionalColumns": [
 							{
-								"name": "Load_Date",
-								"value": {
-									"value": "@utcNow()",
-									"type": "Expression"
-								}
-							},
-							{
 								"name": "Job_Id",
 								"value": "$$FILEPATH"
+							},
+							{
+								"name": "DI_Load_Date",
+								"value": {
+									"value": "@formatDateTime(utcNow(),'yyyy-MM-dd')\n",
+									"type": "Expression"
+								}
 							}
 						],
 						"storeSettings": {
