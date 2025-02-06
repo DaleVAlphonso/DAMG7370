@@ -15,6 +15,10 @@
 		},
 		"annotations": [],
 		"type": "SnowflakeV2Table",
-		"schema": []
+		"schema": [],
+		"typeProperties": {
+			"schema": "",
+			"table": ""
+		}
 	}
 }
