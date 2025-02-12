@@ -1,0 +1,14 @@
+{
+	"name": "Data_Clean_Data_FROM_CSV",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				""
+			]
+		}
+	}
+}
