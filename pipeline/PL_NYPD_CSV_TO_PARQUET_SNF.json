@@ -7,7 +7,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "TSV_2_Parquet",
+						"activity": "CSV_2_Parquet",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -85,7 +85,7 @@
 				]
 			},
 			{
-				"name": "TSV_2_Parquet",
+				"name": "CSV_2_Parquet",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
