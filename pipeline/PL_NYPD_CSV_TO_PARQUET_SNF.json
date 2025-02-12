@@ -1,5 +1,5 @@
 {
-	"name": "PL_TSV_TO_PARQUET_copy1",
+	"name": "PL_NYPD_CSV_TO_PARQUET_SNF",
 	"properties": {
 		"activities": [
 			{
