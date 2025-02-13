@@ -27,6 +27,10 @@
 						"datasetParameters": {
 							"readCSVfile": {
 								"FileName": "NYPD_Arrest_Data__Year_to_Date__20250212.csv"
+							},
+							"sinkStg": {
+								"SchemaName": "STAGE",
+								"TableName": "NYPD_V2_NYPD_STAGE"
 							}
 						}
 					},

@@ -21,7 +21,11 @@
 			],
 			"sinks": [
 				{
-					"name": "s"
+					"dataset": {
+						"referenceName": "SnowflakeTable",
+						"type": "DatasetReference"
+					},
+					"name": "sinkStg"
 				}
 			],
 			"transformations": [
@@ -140,8 +144,14 @@
 				"     skipDuplicateMapOutputs: true) ~> RequiredColumns",
 				"RequiredColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> s"
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true) ~> sinkStg"
 			]
 		}
 	}
