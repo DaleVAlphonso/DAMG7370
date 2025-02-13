@@ -129,8 +129,11 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "DelimitedText",
-						"type": "DatasetReference"
+						"referenceName": "DelimitedTextCSV",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileName": "NYPD_Arrest_Data__Year_to_Date__20250212.csv"
+						}
 					}
 				],
 				"outputs": [
