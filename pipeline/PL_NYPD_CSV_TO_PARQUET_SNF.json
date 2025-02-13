@@ -32,6 +32,14 @@
 								"SchemaName": "STAGE",
 								"TableName": "NYPD_V2_NYPD_STAGE"
 							}
+						},
+						"linkedServiceParameters": {
+							"sinkStg": {
+								"schemaLinkedService": {
+									"SchemaName": "STAGE",
+									"TableName": "NYPD_V2_NYPD_STAGE"
+								}
+							}
 						}
 					},
 					"compute": {
