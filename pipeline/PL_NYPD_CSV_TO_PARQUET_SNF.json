@@ -3,90 +3,8 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Parquet_2_Snowflake",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "CSV_2_Parquet",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.00:30:00",
-					"retry": 1,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "ParquetSource",
-						"additionalColumns": [
-							{
-								"name": "Job_Id",
-								"value": "$$FILEPATH"
-							},
-							{
-								"name": "DI_Load_Date",
-								"value": {
-									"value": "@formatDateTime(utcNow(),'yyyy-MM-dd')\n",
-									"type": "Expression"
-								}
-							}
-						],
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": false,
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "ParquetReadSettings"
-						}
-					},
-					"sink": {
-						"type": "SnowflakeV2Sink",
-						"importSettings": {
-							"type": "SnowflakeImportCopyCommand"
-						}
-					},
-					"enableStaging": true,
-					"stagingSettings": {
-						"linkedServiceName": {
-							"referenceName": "AzureBlobStorage_LS",
-							"type": "LinkedServiceReference"
-						},
-						"path": "snowstg"
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "Parquet",
-						"type": "DatasetReference",
-						"parameters": {
-							"filename": {
-								"value": "@variables('myFileName')",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "SnowflakeTable",
-						"type": "DatasetReference",
-						"parameters": {
-							"SchemaName": "SEATTLE_PET",
-							"TableName": "PET_LICENSE_STAGE"
-						}
-					}
-				]
-			},
-			{
-				"name": "CSV_2_Parquet",
-				"type": "Copy",
+				"name": "StageCleanData",
+				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -97,57 +15,27 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"source": {
-						"type": "DelimitedTextSource",
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": true,
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
-						}
-					},
-					"sink": {
-						"type": "ParquetSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "ParquetWriteSettings"
-						}
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "DelimitedTextCSV",
-						"type": "DatasetReference",
+					"dataflow": {
+						"referenceName": "NYPD_Clean_Data_FROM_CSV",
+						"type": "DataFlowReference",
 						"parameters": {
-							"FileName": "NYPD_Arrest_Data__Year_to_Date__20250212.csv"
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "Parquet",
-						"type": "DatasetReference",
-						"parameters": {
-							"filename": {
-								"value": "@variables('myFileName')",
+							"Job_id_Param": {
+								"value": "'@{substring(pipeline().RunId,1 ,10 )}'",
 								"type": "Expression"
 							}
+						},
+						"datasetParameters": {
+							"readCSVfile": {
+								"FileName": "NYPD_Arrest_Data__Year_to_Date__20250212.csv"
+							}
 						}
-					}
-				]
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
 			}
 		],
 		"variables": {
