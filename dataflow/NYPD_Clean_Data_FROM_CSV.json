@@ -1,5 +1,5 @@
 {
-	"name": "Data_Clean_Data_FROM_CSV_copy1",
+	"name": "NYPD_Clean_Data_FROM_CSV",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -10,9 +10,20 @@
 						"type": "DatasetReference"
 					},
 					"name": "readCSVfile"
+				},
+				{
+					"dataset": {
+						"referenceName": "DelimitedGeoCSV",
+						"type": "DatasetReference"
+					},
+					"name": "GeographicalData"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"name": "s"
+				}
+			],
 			"transformations": [
 				{
 					"name": "TransformToCleanData"
@@ -21,19 +32,16 @@
 					"name": "JoinTable"
 				},
 				{
-					"name": "GeographicalColumns"
+					"name": "derivedColumn1"
 				},
 				{
-					"name": "AggregateTransformation"
-				},
-				{
-					"name": "MedianColumns"
-				},
-				{
-					"name": "RequiredCols"
+					"name": "RequiredColumns"
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     Job_id_Param as string (\"60\")",
+				"}",
 				"source(output(",
 				"          ARREST_KEY as integer,",
 				"          ARREST_DATE as date 'MM/dd/yyyy',",
@@ -58,6 +66,17 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> readCSVfile",
+				"source(output(",
+				"          ARREST_BORO as string,",
+				"          ARREST_PRECINCT as integer,",
+				"          MedianNo0_X_COORD_CD as integer,",
+				"          MedianNo0_Y_COORD_CD as integer,",
+				"          MedianNo0_Latitude as double,",
+				"          MedianNo0_Longitude as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> GeographicalData",
 				"readCSVfile derive(PD_CD = iif(or(isNull(PD_CD),PD_CD== 0),-1,PD_CD),",
 				"          PD_DESC = iif(PD_DESC == '(null)', 'NO DESCRIPTION', PD_DESC),",
 				"          KY_CD = iif(or(isNull(KY_CD),KY_CD== 0),-1,KY_CD),",
@@ -78,47 +97,51 @@
 				"          Latitude = iif(isNull(Latitude) , toDouble(0), Latitude),",
 				"          Longitude = iif(isNull(Longitude), toDouble(0), Longitude),",
 				"          X_COORD_CD = iif(isNull(X_COORD_CD), toInteger(0), X_COORD_CD),",
-				"          Y_COORD_CD = iif(isNull(Y_COORD_CD), toInteger(0), Y_COORD_CD)) ~> TransformToCleanData",
-				"TransformToCleanData, RequiredCols join(TransformToCleanData@ARREST_BORO == RequiredCols@ARREST_BORO",
-				"     && readCSVfile@ARREST_PRECINCT == RequiredCols@ARREST_PRECINCT,",
+				"          Y_COORD_CD = iif(isNull(Y_COORD_CD), toInteger(0), Y_COORD_CD),",
+				"          {New Georeferenced Column} = iif(or(isNull({New Georeferenced Column}),{New Georeferenced Column} == \"\"),\"NULL\",{New Georeferenced Column})) ~> TransformToCleanData",
+				"TransformToCleanData, GeographicalData join(TransformToCleanData@ARREST_BORO == GeographicalData@ARREST_BORO",
+				"     && readCSVfile@ARREST_PRECINCT == GeographicalData@ARREST_PRECINCT,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> JoinTable",
-				"TransformToCleanData select(mapColumn(",
-				"          ARREST_BORO,",
-				"          ARREST_PRECINCT,",
+				"JoinTable derive(X_COORD_CD = iif(or(isNull(X_COORD_CD),X_COORD_CD==0),MedianNo0_X_COORD_CD,X_COORD_CD),",
+				"          Y_COORD_CD = iif(or(isNull(Y_COORD_CD),Y_COORD_CD==0),MedianNo0_Y_COORD_CD,Y_COORD_CD),",
+				"          Latitude = iif(or(isNull(Latitude),Latitude==0),MedianNo0_Latitude,Latitude),",
+				"          Longitude = iif(or(isNull(Longitude),Longitude==0),MedianNo0_Longitude,Longitude),",
+				"          {New Georeferenced Column} = iif(or({New Georeferenced Column}== \"NULL\", {New Georeferenced Column} == \"POINT (0 0)\"),\"POINT (\"+toString(MedianNo0_Longitude)+ \" \" + toString(MedianNo0_Latitude) + \")\" ,{New Georeferenced Column})\r",
+				",",
+				"          Job_ID = $Job_id_Param,",
+				"          Job_load_date = currentDate()) ~> derivedColumn1",
+				"derivedColumn1 select(mapColumn(",
+				"          ARREST_KEY,",
+				"          ARREST_DATE,",
+				"          PD_CD,",
+				"          PD_DESC,",
+				"          KY_CD,",
+				"          OFNS_DESC,",
+				"          LAW_CODE,",
+				"          LAW_CAT_CD,",
+				"          ARREST_BORO = TransformToCleanData@ARREST_BORO,",
+				"          ARREST_PRECINCT = readCSVfile@ARREST_PRECINCT,",
+				"          JURISDICTION_CODE,",
+				"          AGE_GROUP,",
+				"          PERP_SEX,",
+				"          PERP_RACE,",
 				"          X_COORD_CD,",
 				"          Y_COORD_CD,",
 				"          Latitude,",
-				"          Longitude",
+				"          Longitude,",
+				"          NEW_GEOREFERENCED_COLUMN = {New Georeferenced Column},",
+				"          Job_ID,",
+				"          Job_load_date",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> GeographicalColumns",
-				"GeographicalColumns aggregate(groupBy(ARREST_BORO,",
-				"          ARREST_PRECINCT),",
-				"     X_COORD_CD = collect(X_COORD_CD),",
-				"          X_COORD_CD_count = (countIf(X_COORD_CD != 0)),",
-				"          Y_COORD_CD = collect(Y_COORD_CD),",
-				"          Y_COORD_CD_count = (countIf(Y_COORD_CD != 0)),",
-				"          Latitude = collect(iif(Latitude != 0, Latitude, toDouble(null()))),",
-				"          Latitude_count = (countIf(Latitude != 0)),",
-				"          Longitude = collect(Longitude),",
-				"          Longitude_count = (countIf(Longitude != 0))) ~> AggregateTransformation",
-				"AggregateTransformation derive(Median_X_COORD_CD = iif(X_COORD_CD_count%2==1,toInteger(X_COORD_CD[toInteger(round(X_COORD_CD_count+2)/2)]),toInteger((X_COORD_CD[toInteger(round(X_COORD_CD_count + 2) / 2)] + X_COORD_CD[toInteger(round(X_COORD_CD_count / 2))])/2)),",
-				"          Median_Y_COORD_CD = iif(Y_COORD_CD_count%2==1,toInteger(Y_COORD_CD[toInteger(round(Y_COORD_CD_count+2)/2)]),toInteger((Y_COORD_CD[toInteger(round(Y_COORD_CD_count + 2) / 2)] + Y_COORD_CD[toInteger(round(Y_COORD_CD_count / 2))])/2)),",
-				"          Median_Latitude = iif(Latitude_count%2==1,toDouble(Latitude[toInteger(round(Latitude_count+2)/2)]),toDouble((Latitude[toInteger(round(Latitude_count + 2) / 2)] + Latitude[toInteger(round(Latitude_count / 2))])/2)),",
-				"          Median_Longitude = iif(Longitude_count%2==1,toDouble(Longitude[toInteger(round(Longitude_count+2)/2)]),toDouble((Longitude[toInteger(round(Longitude_count + 2) / 2)] + Longitude[toInteger(round(Longitude_count / 2))])/2))) ~> MedianColumns",
-				"MedianColumns select(mapColumn(",
-				"          ARREST_BORO,",
-				"          ARREST_PRECINCT,",
-				"          Median_X_COORD_CD,",
-				"          Median_Y_COORD_CD,",
-				"          Median_Latitude,",
-				"          Median_Longitude",
-				"     ),",
+				"     skipDuplicateMapOutputs: true) ~> RequiredColumns",
+				"RequiredColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> RequiredCols"
+				"     skipDuplicateMapOutputs: true) ~> s"
 			]
 		}
 	}
