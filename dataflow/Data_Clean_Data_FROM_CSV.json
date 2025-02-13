@@ -13,11 +13,58 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "TransformToCleanData"
+				}
+			],
 			"scriptLines": [
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          ARREST_KEY as integer,",
+				"          ARREST_DATE as date 'MM/dd/yyyy',",
+				"          PD_CD as integer,",
+				"          PD_DESC as string,",
+				"          KY_CD as integer,",
+				"          OFNS_DESC as string,",
+				"          LAW_CODE as string,",
+				"          LAW_CAT_CD as string,",
+				"          ARREST_BORO as string,",
+				"          ARREST_PRECINCT as integer,",
+				"          JURISDICTION_CODE as integer,",
+				"          AGE_GROUP as string,",
+				"          PERP_SEX as string,",
+				"          PERP_RACE as string,",
+				"          X_COORD_CD as integer,",
+				"          Y_COORD_CD as integer,",
+				"          Latitude as double,",
+				"          Longitude as double,",
+				"          {New Georeferenced Column} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> readCSVfile"
+				"     ignoreNoFilesFound: false) ~> readCSVfile",
+				"readCSVfile derive(PD_CD = iif(or(isNull(PD_CD),PD_CD== 0),-1,PD_CD)\r",
+				"\r",
+				",",
+				"          PD_DESC = iif(PD_DESC == '(null)', 'NO DESCRIPTION', PD_DESC)\r",
+				",",
+				"          KY_CD = iif(or(isNull(KY_CD),KY_CD== 0),-1,KY_CD),",
+				"          OFNS_DESC = iif(OFNS_DESC == '(null)', 'NO DESCRIPTION', OFNS_DESC),",
+				"          LAW_CAT_CD = iif(isNull(LAW_CAT_CD), \"UNKNOWN\",iif(LAW_CAT_CD == \"F\", \"Felony\",iif(LAW_CAT_CD == \"M\", \"Misdemeanor\",iif(LAW_CAT_CD == \"V\", \"Violation\", \"UNKNOWN\")\r",
+				"        )\r",
+				"    )\r",
+				"),",
+				"          ARREST_BORO = iif(ARREST_BORO == \"B\", \"BRONX\",\r",
+				"    iif(ARREST_BORO == \"S\", \"STATEN ISLAND\",\r",
+				"        iif(ARREST_BORO == \"K\", \"BROOKLYN\",\r",
+				"            iif(ARREST_BORO == \"M\", \"MANHATTAN\",\r",
+				"                iif(ARREST_BORO == \"Q\", \"QUEENS\", \"UNKNOWN\")\r",
+				"            )\r",
+				"        )\r",
+				"    )\r",
+				")\r",
+				",",
+				"          X_COORD_CD = ERROR_FUNCTION('')) ~> TransformToCleanData"
 			]
 		}
 	}
