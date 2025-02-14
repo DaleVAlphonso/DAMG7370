@@ -22,7 +22,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "SnowflakeTable1",
+						"referenceName": "SnowflakeTable",
 						"type": "DatasetReference"
 					},
 					"name": "sinkStg"
