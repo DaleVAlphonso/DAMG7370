@@ -137,8 +137,8 @@
 				"          LATITUDE = Latitude,",
 				"          LONGITUDE = Longitude,",
 				"          NEW_GEOREFERENCED_COLUMN = {New Georeferenced Column},",
-				"          Job_ID,",
-				"          Job_load_date",
+				"          JOB_ID = Job_ID,",
+				"          JOB_LOAD_DATE = Job_load_date",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> RequiredColumns",
@@ -173,8 +173,8 @@
 				"          LATITUDE,",
 				"          LONGITUDE,",
 				"          NEW_GEOREFERENCED_COLUMN,",
-				"          Job_ID,",
-				"          Job_load_date",
+				"          JOB_ID,",
+				"          JOB_LOAD_DATE",
 				"     )) ~> sinkSnowflake"
 			]
 		}
