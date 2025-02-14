@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "StageCleanData",
+				"name": "CleanNYPDArrestData",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
