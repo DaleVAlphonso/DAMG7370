@@ -107,6 +107,34 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedGeoCSV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage_LS",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Geographical_dataset.csv",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage_LS')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DelimitedText')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -127,6 +155,76 @@
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage_LS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedTextCSV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage_LS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"FileName": {
+						"type": "string",
+						"defaultValue": "NYPD_Arrest_Data__Year_to_Date__20250212.csv"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().FileName",
+							"type": "Expression"
+						},
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage_LS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Parquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage_LS",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"fileSystem": "silver"
+					},
+					"compressionCodec": "snappy"
 				},
 				"schema": []
 			},
@@ -170,36 +268,24 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Parquet')]",
+			"name": "[concat(parameters('factoryName'), '/SnowflakeTable1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureDataLakeStorage_LS",
+					"referenceName": "ls_snowflake",
 					"type": "LinkedServiceReference"
 				},
-				"parameters": {
-					"filename": {
-						"type": "string"
-					}
-				},
 				"annotations": [],
-				"type": "Parquet",
+				"type": "SnowflakeV2Table",
+				"schema": [],
 				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().filename",
-							"type": "Expression"
-						},
-						"fileSystem": "silver"
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": []
+					"schema": "NYPD_ARREST",
+					"table": "V2_NYPD_ARREST_STAGE"
+				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage_LS')]"
+				"[concat(variables('factoryId'), '/linkedServices/ls_snowflake')]"
 			]
 		},
 		{
@@ -370,6 +456,403 @@
 				"[concat(variables('factoryId'), '/datasets/SnowflakeTable')]",
 				"[concat(variables('factoryId'), '/datasets/DelimitedText')]",
 				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage_LS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DUMMY_Data_Clean_Data_FROM_CSV')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedTextCSV",
+								"type": "DatasetReference"
+							},
+							"name": "readCSVfile"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SnowflakeTable",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "TransformToCleanData"
+						},
+						{
+							"name": "JoinTable"
+						},
+						{
+							"name": "GeographicalColumns"
+						},
+						{
+							"name": "AggregateTransformation"
+						},
+						{
+							"name": "MedianColumns"
+						},
+						{
+							"name": "RequiredCols"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          ARREST_KEY as integer,",
+						"          ARREST_DATE as date 'MM/dd/yyyy',",
+						"          PD_CD as integer,",
+						"          PD_DESC as string,",
+						"          KY_CD as integer,",
+						"          OFNS_DESC as string,",
+						"          LAW_CODE as string,",
+						"          LAW_CAT_CD as string,",
+						"          ARREST_BORO as string,",
+						"          ARREST_PRECINCT as integer,",
+						"          JURISDICTION_CODE as integer,",
+						"          AGE_GROUP as string,",
+						"          PERP_SEX as string,",
+						"          PERP_RACE as string,",
+						"          X_COORD_CD as integer,",
+						"          Y_COORD_CD as integer,",
+						"          Latitude as double,",
+						"          Longitude as double,",
+						"          {New Georeferenced Column} as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> readCSVfile",
+						"readCSVfile derive(PD_CD = iif(or(isNull(PD_CD),PD_CD== 0),-1,PD_CD),",
+						"          PD_DESC = iif(PD_DESC == '(null)', 'NO DESCRIPTION', PD_DESC),",
+						"          KY_CD = iif(or(isNull(KY_CD),KY_CD== 0),-1,KY_CD),",
+						"          OFNS_DESC = iif(OFNS_DESC == '(null)', 'NO DESCRIPTION', OFNS_DESC),",
+						"          LAW_CAT_CD = iif(isNull(LAW_CAT_CD), \"UNKNOWN\",iif(LAW_CAT_CD == \"F\", \"Felony\",iif(LAW_CAT_CD == \"M\", \"Misdemeanor\",iif(LAW_CAT_CD == \"V\", \"Violation\", \"UNKNOWN\")\r",
+						"        )\r",
+						"    )\r",
+						"),",
+						"          ARREST_BORO = iif(ARREST_BORO == \"B\", \"BRONX\",\r",
+						"    iif(ARREST_BORO == \"S\", \"STATEN ISLAND\",\r",
+						"        iif(ARREST_BORO == \"K\", \"BROOKLYN\",\r",
+						"            iif(ARREST_BORO == \"M\", \"MANHATTAN\",\r",
+						"                iif(ARREST_BORO == \"Q\", \"QUEENS\", \"UNKNOWN\")\r",
+						"            )\r",
+						"        )\r",
+						"    )\r",
+						"),",
+						"          Latitude = iif(isNull(Latitude) , toDouble(0), Latitude),",
+						"          Longitude = iif(isNull(Longitude), toDouble(0), Longitude),",
+						"          X_COORD_CD = iif(isNull(X_COORD_CD), toInteger(0), X_COORD_CD),",
+						"          Y_COORD_CD = iif(isNull(Y_COORD_CD), toInteger(0), Y_COORD_CD)) ~> TransformToCleanData",
+						"TransformToCleanData, RequiredCols join(TransformToCleanData@ARREST_BORO == RequiredCols@ARREST_BORO",
+						"     && readCSVfile@ARREST_PRECINCT == RequiredCols@ARREST_PRECINCT,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> JoinTable",
+						"TransformToCleanData select(mapColumn(",
+						"          ARREST_BORO,",
+						"          ARREST_PRECINCT,",
+						"          X_COORD_CD,",
+						"          Y_COORD_CD,",
+						"          Latitude,",
+						"          Longitude",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> GeographicalColumns",
+						"GeographicalColumns aggregate(groupBy(ARREST_BORO,",
+						"          ARREST_PRECINCT),",
+						"     X_COORD_CD = collect(X_COORD_CD),",
+						"          X_COORD_CD_count = (countIf(X_COORD_CD != 0)),",
+						"          Y_COORD_CD = collect(Y_COORD_CD),",
+						"          Y_COORD_CD_count = (countIf(Y_COORD_CD != 0)),",
+						"          Latitude = collect(iif(Latitude != 0, Latitude, toDouble(null()))),",
+						"          Latitude_count = (countIf(Latitude != 0)),",
+						"          Longitude = collect(Longitude),",
+						"          Longitude_count = (countIf(Longitude != 0))) ~> AggregateTransformation",
+						"AggregateTransformation derive(Median_X_COORD_CD = iif(X_COORD_CD_count%2==1,toInteger(X_COORD_CD[toInteger(round(X_COORD_CD_count+2)/2)]),toInteger((X_COORD_CD[toInteger(round(X_COORD_CD_count + 2) / 2)] + X_COORD_CD[toInteger(round(X_COORD_CD_count / 2))])/2)),",
+						"          Median_Y_COORD_CD = iif(Y_COORD_CD_count%2==1,toInteger(Y_COORD_CD[toInteger(round(Y_COORD_CD_count+2)/2)]),toInteger((Y_COORD_CD[toInteger(round(Y_COORD_CD_count + 2) / 2)] + Y_COORD_CD[toInteger(round(Y_COORD_CD_count / 2))])/2)),",
+						"          Median_Latitude = iif(Latitude_count%2==1,toDouble(Latitude[toInteger(round(Latitude_count+2)/2)]),toDouble((Latitude[toInteger(round(Latitude_count + 2) / 2)] + Latitude[toInteger(round(Latitude_count / 2))])/2)),",
+						"          Median_Longitude = iif(Longitude_count%2==1,toDouble(Longitude[toInteger(round(Longitude_count+2)/2)]),toDouble((Longitude[toInteger(round(Longitude_count + 2) / 2)] + Longitude[toInteger(round(Longitude_count / 2))])/2))) ~> MedianColumns",
+						"MedianColumns select(mapColumn(",
+						"          ARREST_BORO,",
+						"          ARREST_PRECINCT,",
+						"          Median_X_COORD_CD,",
+						"          Median_Y_COORD_CD,",
+						"          Median_Latitude,",
+						"          Median_Longitude",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> RequiredCols",
+						"RequiredCols sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     stageInsert: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DelimitedTextCSV')]",
+				"[concat(variables('factoryId'), '/datasets/SnowflakeTable')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/NYPD_Clean_Data_FROM_CSV')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedTextCSV",
+								"type": "DatasetReference"
+							},
+							"name": "readCSVfile"
+						},
+						{
+							"dataset": {
+								"referenceName": "DelimitedGeoCSV",
+								"type": "DatasetReference"
+							},
+							"name": "GeographicalData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SnowflakeTable1",
+								"type": "DatasetReference"
+							},
+							"name": "sinkSnowflake"
+						}
+					],
+					"transformations": [
+						{
+							"name": "TransformToCleanData"
+						},
+						{
+							"name": "JoinTable"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "RequiredColumns"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     Job_id_Param as string (\"60\")",
+						"}",
+						"source(output(",
+						"          ARREST_KEY as integer,",
+						"          ARREST_DATE as date 'MM/dd/yyyy',",
+						"          PD_CD as integer,",
+						"          PD_DESC as string,",
+						"          KY_CD as integer,",
+						"          OFNS_DESC as string,",
+						"          LAW_CODE as string,",
+						"          LAW_CAT_CD as string,",
+						"          ARREST_BORO as string,",
+						"          ARREST_PRECINCT as integer,",
+						"          JURISDICTION_CODE as integer,",
+						"          AGE_GROUP as string,",
+						"          PERP_SEX as string,",
+						"          PERP_RACE as string,",
+						"          X_COORD_CD as integer,",
+						"          Y_COORD_CD as integer,",
+						"          Latitude as double,",
+						"          Longitude as double,",
+						"          {New Georeferenced Column} as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> readCSVfile",
+						"source(output(",
+						"          ARREST_BORO as string,",
+						"          ARREST_PRECINCT as integer,",
+						"          MedianNo0_X_COORD_CD as integer,",
+						"          MedianNo0_Y_COORD_CD as integer,",
+						"          MedianNo0_Latitude as double,",
+						"          MedianNo0_Longitude as double",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> GeographicalData",
+						"readCSVfile derive(PD_CD = iif(or(isNull(PD_CD),PD_CD== 0),-1,PD_CD),",
+						"          PD_DESC = iif(PD_DESC == '(null)', 'NO DESCRIPTION', PD_DESC),",
+						"          KY_CD = iif(or(isNull(KY_CD),KY_CD== 0),-1,KY_CD),",
+						"          OFNS_DESC = iif(OFNS_DESC == '(null)', 'NO DESCRIPTION', OFNS_DESC),",
+						"          LAW_CAT_CD = iif(isNull(LAW_CAT_CD), \"UNKNOWN\",iif(LAW_CAT_CD == \"F\", \"Felony\",iif(LAW_CAT_CD == \"M\", \"Misdemeanor\",iif(LAW_CAT_CD == \"V\", \"Violation\", \"UNKNOWN\")\r",
+						"        )\r",
+						"    )\r",
+						"),",
+						"          ARREST_BORO = iif(ARREST_BORO == \"B\", \"BRONX\",\r",
+						"    iif(ARREST_BORO == \"S\", \"STATEN ISLAND\",\r",
+						"        iif(ARREST_BORO == \"K\", \"BROOKLYN\",\r",
+						"            iif(ARREST_BORO == \"M\", \"MANHATTAN\",\r",
+						"                iif(ARREST_BORO == \"Q\", \"QUEENS\", \"UNKNOWN\")\r",
+						"            )\r",
+						"        )\r",
+						"    )\r",
+						"),",
+						"          Latitude = iif(isNull(Latitude) , toDouble(0), Latitude),",
+						"          Longitude = iif(isNull(Longitude), toDouble(0), Longitude),",
+						"          X_COORD_CD = iif(isNull(X_COORD_CD), toInteger(0), X_COORD_CD),",
+						"          Y_COORD_CD = iif(isNull(Y_COORD_CD), toInteger(0), Y_COORD_CD),",
+						"          {New Georeferenced Column} = iif(or(isNull({New Georeferenced Column}),{New Georeferenced Column} == \"\"),\"NULL\",{New Georeferenced Column})) ~> TransformToCleanData",
+						"TransformToCleanData, GeographicalData join(TransformToCleanData@ARREST_BORO == GeographicalData@ARREST_BORO",
+						"     && readCSVfile@ARREST_PRECINCT == GeographicalData@ARREST_PRECINCT,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> JoinTable",
+						"JoinTable derive(X_COORD_CD = iif(or(isNull(X_COORD_CD),X_COORD_CD==0),MedianNo0_X_COORD_CD,X_COORD_CD),",
+						"          Y_COORD_CD = iif(or(isNull(Y_COORD_CD),Y_COORD_CD==0),MedianNo0_Y_COORD_CD,Y_COORD_CD),",
+						"          Latitude = iif(or(isNull(Latitude),Latitude==0),MedianNo0_Latitude,Latitude),",
+						"          Longitude = iif(or(isNull(Longitude),Longitude==0),MedianNo0_Longitude,Longitude),",
+						"          {New Georeferenced Column} = iif(or({New Georeferenced Column}== \"NULL\", {New Georeferenced Column} == \"POINT (0 0)\"),\"POINT (\"+toString(MedianNo0_Longitude)+ \" \" + toString(MedianNo0_Latitude) + \")\" ,{New Georeferenced Column}),",
+						"          Job_ID = $Job_id_Param,",
+						"          Job_load_date = currentDate()) ~> derivedColumn1",
+						"derivedColumn1 select(mapColumn(",
+						"          ARREST_KEY,",
+						"          ARREST_DATE,",
+						"          PD_CD,",
+						"          PD_DESC,",
+						"          KY_CD,",
+						"          OFNS_DESC,",
+						"          LAW_CODE,",
+						"          LAW_CAT_CD,",
+						"          ARREST_BORO = TransformToCleanData@ARREST_BORO,",
+						"          ARREST_PRECINCT = readCSVfile@ARREST_PRECINCT,",
+						"          JURISDICTION_CODE,",
+						"          AGE_GROUP,",
+						"          PERP_SEX,",
+						"          PERP_RACE,",
+						"          X_COORD_CD,",
+						"          Y_COORD_CD,",
+						"          LATITUDE = Latitude,",
+						"          LONGITUDE = Longitude,",
+						"          NEW_GEOREFERENCED_COLUMN = {New Georeferenced Column},",
+						"          JOB_ID = Job_ID,",
+						"          JOB_LOAD_DATE = Job_load_date",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> RequiredColumns",
+						"RequiredColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     truncate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     stageInsert: true,",
+						"     mapColumn(",
+						"          ARREST_KEY,",
+						"          ARREST_DATE,",
+						"          PD_CD,",
+						"          PD_DESC,",
+						"          KY_CD,",
+						"          OFNS_DESC,",
+						"          LAW_CODE,",
+						"          LAW_CAT_CD,",
+						"          ARREST_BORO,",
+						"          ARREST_PRECINCT,",
+						"          JURISDICTION_CODE,",
+						"          AGE_GROUP,",
+						"          PERP_SEX,",
+						"          PERP_RACE,",
+						"          X_COORD_CD,",
+						"          Y_COORD_CD,",
+						"          LATITUDE,",
+						"          LONGITUDE,",
+						"          NEW_GEOREFERENCED_COLUMN,",
+						"          JOB_ID,",
+						"          JOB_LOAD_DATE",
+						"     )) ~> sinkSnowflake"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DelimitedTextCSV')]",
+				"[concat(variables('factoryId'), '/datasets/DelimitedGeoCSV')]",
+				"[concat(variables('factoryId'), '/datasets/SnowflakeTable1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_NYPD_CSV_TO_PARQUET_SNF')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "CleanNYPDArrestData",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "NYPD_Clean_Data_FROM_CSV",
+								"type": "DataFlowReference",
+								"parameters": {
+									"Job_id_Param": {
+										"value": "'@{substring(pipeline().RunId,1 ,10 )}'",
+										"type": "Expression"
+									}
+								},
+								"datasetParameters": {
+									"readCSVfile": {
+										"FileName": "NYPD_Arrest_Data__Year_to_Date__20250212.csv"
+									},
+									"GeographicalData": {},
+									"sinkSnowflake": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"myFileName": {
+						"type": "String",
+						"defaultValue": "pet_lic.parquet"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/NYPD_Clean_Data_FROM_CSV')]"
 			]
 		}
 	]
