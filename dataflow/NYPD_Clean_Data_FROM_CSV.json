@@ -25,7 +25,7 @@
 						"referenceName": "SnowflakeTable1",
 						"type": "DatasetReference"
 					},
-					"name": "sinkStg"
+					"name": "sinkSnowflake"
 				}
 			],
 			"transformations": [
@@ -152,7 +152,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     stageInsert: true) ~> sinkStg"
+				"     stageInsert: true) ~> sinkSnowflake"
 			]
 		}
 	}
