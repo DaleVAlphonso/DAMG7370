@@ -1,0 +1,43 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SnowflakeTable",
+						"type": "DatasetReference"
+					},
+					"name": "sourceSTAGEDATA"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_LOCATION_DIM",
+						"type": "DatasetReference"
+					},
+					"name": "sourceLOCATIONDIM"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> sourceSTAGEDATA",
+				"source(output(",
+				"          LOCATION_SK as string,",
+				"          CITY as string,",
+				"          STATE as string,",
+				"          STATE_ABBR as string,",
+				"          ZIP_CODE as string,",
+				"          DI_JOB_ID as string,",
+				"          DI_LOAD_DT as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> sourceLOCATIONDIM"
+			]
+		}
+	}
+}
