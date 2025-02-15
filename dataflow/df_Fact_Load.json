@@ -17,7 +17,7 @@
 			"scriptLines": [
 				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     query: 'SELECT NVL(MAX())',",
+				"     query: 'SELECT NVL(MAX(PET_LC_SK),0) AS pet_lic_sk FROM Seattle_Pet.PET_LC_FCT',",
 				"     format: 'query') ~> PetMaxID"
 			]
 		}
