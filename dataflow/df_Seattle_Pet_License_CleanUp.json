@@ -63,7 +63,7 @@
 				"derivedColumn1 select(mapColumn(",
 				"          LICENSE_ISSUE_DATE = License_Issue_Date,",
 				"          LICENSE_NUMBER = License_Number,",
-				"          ANIMALS_NAME = Animals_Name,",
+				"          ANIMAL_NAME = Animals_Name,",
 				"          SPECIES = Species,",
 				"          PRIMARY_BREED = Primary_Breed,",
 				"          SECONDARY_BREED = Secondary_Breed,",
