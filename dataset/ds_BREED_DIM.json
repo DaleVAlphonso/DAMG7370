@@ -15,26 +15,6 @@
 				"scale": 0
 			},
 			{
-				"name": "BREED_DK",
-				"type": "NUMBER",
-				"precision": 10,
-				"scale": 0
-			},
-			{
-				"name": "IS_ACTIVE",
-				"type": "NUMBER",
-				"precision": 10,
-				"scale": 0
-			},
-			{
-				"name": "START_DT",
-				"type": "DATE"
-			},
-			{
-				"name": "END_DT",
-				"type": "DATE"
-			},
-			{
 				"name": "SPECIES_NAME",
 				"type": "VARCHAR"
 			},
@@ -51,7 +31,7 @@
 				"type": "VARCHAR"
 			},
 			{
-				"name": "DI_LOAD_DT",
+				"name": "DI_CREATED_DATE",
 				"type": "DATE"
 			}
 		],

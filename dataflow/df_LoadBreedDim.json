@@ -40,6 +40,9 @@
 				},
 				{
 					"name": "DerivedColumns"
+				},
+				{
+					"name": "RequiredCols"
 				}
 			],
 			"scriptLines": [
@@ -83,19 +86,25 @@
 				"surrogateKey1 derive(BREED_SK = MAXBREEDSK + RowNum,",
 				"          DI_CREATED_DT = toString(currentDate(), 'yyyy-MM-dd'),",
 				"          DI_JOB_ID = $DI_JOB_ID) ~> DerivedColumns",
-				"DerivedColumns sink(allowSchemaDrift: true,",
+				"DerivedColumns select(mapColumn(",
+				"          SPECIES,",
+				"          PRIMARY_BREED,",
+				"          SECONDARY_BREED,",
+				"          BREED_SK,",
+				"          DI_CREATED_DT,",
+				"          DI_JOB_ID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> RequiredCols",
+				"RequiredCols sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          BREED_SK as string,",
-				"          BREED_DK as string,",
-				"          IS_ACTIVE as string,",
-				"          START_DT as string,",
-				"          END_DT as string,",
 				"          SPECIES_NAME as string,",
 				"          PRIMARY_BREED_NAME as string,",
 				"          SECONDARY_BREED_NAME as string,",
 				"          DI_JOB_ID as string,",
-				"          DI_LOAD_DT as string",
+				"          DI_CREATED_DATE as string",
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -111,7 +120,7 @@
 				"          PRIMARY_BREED_NAME = PRIMARY_BREED,",
 				"          SECONDARY_BREED_NAME = SECONDARY_BREED,",
 				"          DI_JOB_ID,",
-				"          DI_LOAD_DT = DI_CREATED_DT",
+				"          DI_CREATED_DATE = DI_CREATED_DT",
 				"     )) ~> sinkBreedDim"
 			]
 		}
