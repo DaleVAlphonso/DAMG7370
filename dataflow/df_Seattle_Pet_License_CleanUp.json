@@ -1,0 +1,109 @@
+{
+	"name": "df_Seattle_Pet_License_CleanUp",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText",
+						"type": "DatasetReference"
+					},
+					"name": "FileSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_V2_PET_LICENSE_STAGE",
+						"type": "DatasetReference"
+					},
+					"name": "sinkSnowflake"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_Parquet",
+						"type": "DatasetReference"
+					},
+					"name": "sinkParquet"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "RequiredColumns"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Job_ID as string (\"60\"),",
+				"     myFileName as string (\"pet_lic.parquet\")",
+				"}",
+				"source(output(",
+				"          License_Issue_Date as date 'MM/dd/yyyy',",
+				"          License_Number as string,",
+				"          Animals_Name as string,",
+				"          Species as string,",
+				"          Primary_Breed as string,",
+				"          Secondary_Breed as string,",
+				"          ZIP_Code as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false) ~> FileSource",
+				"FileSource derive(Species = upper(Species),",
+				"          Secondary_Breed = iifNull(Secondary_Breed,'Unknown'),",
+				"          ZIP_Code = lpad(toString(ZIP_Code), 5, '0'),",
+				"          Animals_Name = translate(Animals_Name, '()[]', ''),",
+				"          License_Number = toInteger(translate(License_Number, 'S', '')),",
+				"          Job_ID = $Job_ID,",
+				"          Load_Dt = currentDate()) ~> derivedColumn1",
+				"derivedColumn1 select(mapColumn(",
+				"          LICENSE_ISSUE_DATE = License_Issue_Date,",
+				"          LICENSE_NUMBER = License_Number,",
+				"          ANIMALS_NAME = Animals_Name,",
+				"          SPECIES = Species,",
+				"          PRIMARY_BREED = Primary_Breed,",
+				"          SECONDARY_BREED = Secondary_Breed,",
+				"          ZIP_CODE = ZIP_Code,",
+				"          DI_JOB_ID = Job_ID,",
+				"          DI_LOAD_DT = Load_Dt",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> RequiredColumns",
+				"RequiredColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          LICENSE_ISSUE_DATE as string,",
+				"          LICENSE_NUMBER as string,",
+				"          ANIMAL_NAME as string,",
+				"          SPECIES as string,",
+				"          PRIMARY_BREED as string,",
+				"          SECONDARY_BREED as string,",
+				"          ZIP_CODE as string,",
+				"          DI_JOB_ID as string,",
+				"          DI_LOAD_DT as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true) ~> sinkSnowflake",
+				"RequiredColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkParquet"
+			]
+		}
+	}
+}
