@@ -19,7 +19,7 @@
 						"referenceName": "df_Seattle_Pet_License_CleanUp",
 						"type": "DataFlowReference",
 						"parameters": {
-							"Job_ID": {
+							"DI_JOB_ID": {
 								"value": "@pipeline().RunId",
 								"type": "Expression"
 							},
