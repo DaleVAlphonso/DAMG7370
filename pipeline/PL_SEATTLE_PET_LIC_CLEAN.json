@@ -20,7 +20,7 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"DI_JOB_ID": {
-								"value": "@pipeline().RunId",
+								"value": "'@{pipeline().RunId}'",
 								"type": "Expression"
 							},
 							"myFileName": "\"pet_lic.parquet\""
