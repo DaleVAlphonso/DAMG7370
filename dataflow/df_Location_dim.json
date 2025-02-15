@@ -30,6 +30,9 @@
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     DI_JOB_ID as string (\"62\")",
+				"}",
 				"source(output(",
 				"          state_fips as string,",
 				"          state as string,",
