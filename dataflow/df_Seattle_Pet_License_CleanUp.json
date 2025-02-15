@@ -52,7 +52,6 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     limit: 100,",
 				"     ignoreNoFilesFound: false) ~> FileSource",
 				"FileSource derive(Species = upper(Species),",
 				"          Secondary_Breed = iifNull(Secondary_Breed,'Unknown'),",
