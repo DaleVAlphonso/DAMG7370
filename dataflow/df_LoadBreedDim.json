@@ -16,6 +16,13 @@
 						"referenceName": "ds_BREED_DIM",
 						"type": "DatasetReference"
 					},
+					"name": "BreedDimMaxID"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_BREED_DIM",
+						"type": "DatasetReference"
+					},
 					"name": "sourceBreedDim"
 				}
 			],
@@ -43,6 +50,12 @@
 				},
 				{
 					"name": "RequiredCols"
+				},
+				{
+					"name": "joinToTarget"
+				},
+				{
+					"name": "filterExitsingRows"
 				}
 			],
 			"scriptLines": [
@@ -69,8 +82,19 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     query: 'SELECT NVL(MAX(BREED_SK),0) as MaxBreedSK from SEATTLE_PET.BREED_DIM',",
-				"     format: 'query') ~> sourceBreedDim",
-				"sourceSTAGEDATA, sourceBreedDim join(1==1,",
+				"     format: 'query') ~> BreedDimMaxID",
+				"source(output(",
+				"          BREED_SK as string,",
+				"          SPECIES_NAME as string,",
+				"          PRIMARY_BREED_NAME as string,",
+				"          SECONDARY_BREED_NAME as string,",
+				"          DI_JOB_ID as string,",
+				"          DI_CREATED_DATE as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> sourceBreedDim",
+				"sourceSTAGEDATA, BreedDimMaxID join(1==1,",
 				"     joinType:'cross',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -80,11 +104,11 @@
 				"          SECONDARY_BREED,",
 				"          MAXBREEDSK),",
 				"     COUNT_ROW = count(LICENSE_NUMBER)) ~> aggregateBreedKeys",
-				"aggregateBreedKeys keyGenerate(output(RowNum as long),",
+				"filterExitsingRows keyGenerate(output(RowNum as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> surrogateKey1",
 				"surrogateKey1 derive(BREED_SK = MAXBREEDSK + RowNum,",
-				"          DI_CREATED_DT = toString(currentDate(), 'yyyy-MM-dd'),",
+				"          DI_CREATED_DT = currentTimestamp(),",
 				"          DI_JOB_ID = $DI_JOB_ID) ~> DerivedColumns",
 				"DerivedColumns select(mapColumn(",
 				"          SPECIES,",
@@ -96,6 +120,14 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> RequiredCols",
+				"aggregateBreedKeys, sourceBreedDim join(PRIMARY_BREED == PRIMARY_BREED_NAME",
+				"     && SECONDARY_BREED == SECONDARY_BREED_NAME",
+				"     && SPECIES == SPECIES_NAME,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinToTarget",
+				"joinToTarget filter(isNull(SPECIES_NAME) && isNull(PRIMARY_BREED_NAME) && isNull(SECONDARY_BREED_NAME)) ~> filterExitsingRows",
 				"RequiredCols sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
