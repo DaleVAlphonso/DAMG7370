@@ -46,6 +46,9 @@
 				},
 				{
 					"name": "joinDateDim"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -55,13 +58,13 @@
 				"     format: 'query') ~> PetMaxID",
 				"source(output(",
 				"          LICENSE_ISSUE_DATE as string,",
-				"          LICENSE_NUMBER as string,",
+				"          LICENSE_NUMBER as decimal(10,0),",
 				"          ANIMAL_NAME as string,",
 				"          SPECIES as string,",
 				"          PRIMARY_BREED as string,",
 				"          SECONDARY_BREED as string,",
 				"          DI_JOB_ID as string,",
-				"          DI_LOAD_DT as string,",
+				"          DI_LOAD_DT as date,",
 				"          ZIP_CODE as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
@@ -94,7 +97,7 @@
 				"     validateSchema: false,",
 				"     limit: 100,",
 				"     format: 'table') ~> sourceLocationDim",
-				"sourceStg, sourceLocationDim join(sourceStg@ZIP_CODE == sourceLocationDim@ZIP_CODE,",
+				"derivedColumn1, sourceLocationDim join(sourceStg@ZIP_CODE == sourceLocationDim@ZIP_CODE,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -110,7 +113,8 @@
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> joinDateDim"
+				"     broadcast: 'auto')~> joinDateDim",
+				"sourceStg derive() ~> derivedColumn1"
 			]
 		}
 	}
