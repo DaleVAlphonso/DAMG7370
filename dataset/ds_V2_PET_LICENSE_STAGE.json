@@ -9,10 +9,6 @@
 		"type": "SnowflakeV2Table",
 		"schema": [
 			{
-				"name": "LICENSE_ISSUE_DATE",
-				"type": "VARCHAR"
-			},
-			{
 				"name": "LICENSE_NUMBER",
 				"type": "NUMBER",
 				"precision": 10,
@@ -45,6 +41,10 @@
 			{
 				"name": "ZIP_CODE",
 				"type": "VARCHAR"
+			},
+			{
+				"name": "LICENSE_ISSUE_DATE",
+				"type": "DATE"
 			}
 		],
 		"typeProperties": {
