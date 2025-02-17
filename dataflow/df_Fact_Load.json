@@ -40,7 +40,15 @@
 					"name": "sourceLocationDim"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_PET_LC_FCT",
+						"type": "DatasetReference"
+					},
+					"name": "sinkFact"
+				}
+			],
 			"transformations": [
 				{
 					"name": "joinLocationDim"
@@ -58,19 +66,25 @@
 					"name": "derivedColumn2"
 				},
 				{
-					"name": "surrogateKey1"
-				},
-				{
 					"name": "joinToFact"
 				},
 				{
 					"name": "RequiredColumns"
 				},
 				{
+					"name": "surrogateKey1"
+				},
+				{
 					"name": "AddColumns"
+				},
+				{
+					"name": "FinalColumns"
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     DI_JOB_ID as string (\"70\")",
+				"}",
 				"source(output(",
 				"          PET_LIC_SK as decimal(10,0)",
 				"     ),",
@@ -152,49 +166,65 @@
 				"sourceLocationDim derive(ZIP_CODE = lpad(trim(toString(ZIP_CODE)), 5, '0')) ~> derivedColumn1",
 				"sourceStg derive(ZIP_CODE = lpad(trim(toString(ZIP_CODE)), 5, '0')\r",
 				") ~> derivedColumn2",
-				"RequiredColumns keyGenerate(output(RowNum as long),",
-				"     startAt: 1L,",
-				"     stepValue: 1L) ~> surrogateKey1",
 				"joinDateDim, PetMaxID join(1==1,",
 				"     joinType:'cross',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> joinToFact",
-				"AddColumns select(mapColumn(",
-				"          LIC_NUM = LICENSE_NUMBER,",
-				"          DI_JOB_ID = sourceStg@DI_JOB_ID,",
-				"          DI_LOAD_DT = sourceStg@DI_LOAD_DT,",
-				"          LICENSE_ISSUE_DATE,",
+				"joinToFact select(mapColumn(",
+				"          LICENSE_NUMBER,",
 				"          LOCATION_SK,",
-				"          CITY,",
-				"          STATE,",
-				"          STATE_ABBR,",
-				"          ZIP_CODE = derivedColumn1@ZIP_CODE,",
-				"          DI_JOB_ID = sourceLocationDim@DI_JOB_ID,",
-				"          DI_LOAD_DT = sourceLocationDim@DI_LOAD_DT,",
 				"          BREED_SK,",
-				"          SPECIES_NAME,",
-				"          PRIMARY_BREED_NAME,",
-				"          SECONDARY_BREED_NAME,",
-				"          DI_JOB_ID = sourceBreedDim@DI_JOB_ID,",
-				"          DI_CREATED_DATE,",
-				"          DT,",
-				"          ABRV_DAY_NAME,",
-				"          MONTH_NAME,",
-				"          START_DAY_OF_MONTH,",
-				"          END_DAY_OF_MONTH,",
-				"          QUARTER_NUM,",
-				"          DAY_OF_WEEK,",
-				"          IS_WEEKEND,",
-				"          YEAR_NUM,",
-				"          MONTH_NUM,",
-				"          DAY_NUM,",
 				"          DATE_DIM_SK,",
 				"          PET_LIC_SK",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> RequiredColumns",
-				"joinToFact derive(PET_LC_SK = ERROR_FUNCTION('')) ~> AddColumns"
+				"RequiredColumns keyGenerate(output(RowNum as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKey1",
+				"surrogateKey1 derive(PET_LIC_SK = PET_LIC_SK + RowNum,",
+				"          DI_LOAD_DT = currentDate(),",
+				"          DI_JOB_ID = $DI_JOB_ID) ~> AddColumns",
+				"AddColumns select(mapColumn(",
+				"          LICENSE_NUMBER,",
+				"          LOCATION_SK,",
+				"          BREED_SK,",
+				"          DATE_DIM_SK,",
+				"          PET_LIC_SK,",
+				"          DI_LOAD_DT,",
+				"          DI_JOB_ID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> FinalColumns",
+				"FinalColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PET_LC_SK as string,",
+				"          DATE_SK as string,",
+				"          LOCATION_SK as string,",
+				"          BREED_SK as string,",
+				"          LIC_NUM as string,",
+				"          DI_JOB_ID as string,",
+				"          DI_LOAD_DT as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          PET_LC_SK = PET_LIC_SK,",
+				"          DATE_SK = DATE_DIM_SK,",
+				"          LOCATION_SK,",
+				"          BREED_SK,",
+				"          LIC_NUM = LICENSE_NUMBER,",
+				"          DI_JOB_ID,",
+				"          DI_LOAD_DT",
+				"     )) ~> sinkFact"
 			]
 		}
 	}
