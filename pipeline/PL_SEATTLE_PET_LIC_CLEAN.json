@@ -38,6 +38,8 @@
 			{
 				"name": "Load_BreedDim",
 				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "StageCleanData",
@@ -75,8 +77,6 @@
 			{
 				"name": "Load_LocationDim",
 				"type": "ExecuteDataFlow",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Load_BreedDim",
