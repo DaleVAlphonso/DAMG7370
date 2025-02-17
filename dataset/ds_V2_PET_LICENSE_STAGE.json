@@ -35,18 +35,16 @@
 				"type": "VARCHAR"
 			},
 			{
-				"name": "ZIP_CODE",
-				"type": "NUMBER",
-				"precision": 10,
-				"scale": 0
-			},
-			{
 				"name": "DI_JOB_ID",
 				"type": "VARCHAR"
 			},
 			{
 				"name": "DI_LOAD_DT",
 				"type": "DATE"
+			},
+			{
+				"name": "ZIP_CODE",
+				"type": "VARCHAR"
 			}
 		],
 		"typeProperties": {
