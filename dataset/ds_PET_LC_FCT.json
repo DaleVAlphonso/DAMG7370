@@ -33,6 +33,12 @@
 				"scale": 0
 			},
 			{
+				"name": "LIC_NUM",
+				"type": "NUMBER",
+				"precision": 10,
+				"scale": 0
+			},
+			{
 				"name": "DI_JOB_ID",
 				"type": "VARCHAR"
 			},
