@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Data flow1",
+				"name": "DF_NameBasics",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -15,6 +15,16 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"dataflow": {
+						"referenceName": "TSV_To_ROW_DF",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sinkNameBasic": {
+								"schema": "DEMO_SF",
+								"TableName": "Name_Basic"
+							}
+						}
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
