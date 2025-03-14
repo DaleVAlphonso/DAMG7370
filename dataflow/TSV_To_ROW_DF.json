@@ -26,15 +26,12 @@
 					"name": "derivedColumn1"
 				},
 				{
-					"name": "flattenKnowForTitles"
-				},
-				{
-					"name": "flattenPrimaryProfession"
+					"name": "flattenColumns"
 				}
 			],
 			"scriptLines": [
 				"parameters{",
-				"     JOB_ID as string",
+				"     JOB_ID as string (\"Dale_06\")",
 				"}",
 				"source(output(",
 				"          nconst as string,",
@@ -52,29 +49,20 @@
 				"          primaryProfession = split(primaryProfession, ','),",
 				"          DI_JOB_ID = $JOB_ID,",
 				"          DI_LOAD_DT = currentDate()) ~> derivedColumn1",
-				"derivedColumn1 foldDown(unroll(knownForTitles),",
+				"derivedColumn1 foldDown(unrollMultiple(knownForTitles,primaryProfession),",
 				"     mapColumn(",
 				"          nconst,",
 				"          primaryName,",
 				"          birthYear,",
 				"          deathYear,",
 				"          primaryProfession,",
-				"          knownForTitles",
+				"          knownForTitles,",
+				"          DI_JOB_ID,",
+				"          DI_LOAD_DT",
 				"     ),",
 				"     skipDuplicateMapInputs: false,",
-				"     skipDuplicateMapOutputs: false) ~> flattenKnowForTitles",
-				"flattenKnowForTitles foldDown(unroll(primaryProfession),",
-				"     mapColumn(",
-				"          nconst,",
-				"          primaryName,",
-				"          birthYear,",
-				"          deathYear,",
-				"          primaryProfession,",
-				"          knownForTitles",
-				"     ),",
-				"     skipDuplicateMapInputs: false,",
-				"     skipDuplicateMapOutputs: false) ~> flattenPrimaryProfession",
-				"flattenPrimaryProfession sink(allowSchemaDrift: true,",
+				"     skipDuplicateMapOutputs: false) ~> flattenColumns",
+				"flattenColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -83,7 +71,17 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     stageInsert: true) ~> sinkNameBasic"
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          nconst,",
+				"          primaryName,",
+				"          birthYear,",
+				"          deathYear,",
+				"          primaryProfession,",
+				"          knownForTitles,",
+				"          DI_JOB_ID,",
+				"          DI_LOAD_DT",
+				"     )) ~> sinkNameBasic"
 			]
 		}
 	}
