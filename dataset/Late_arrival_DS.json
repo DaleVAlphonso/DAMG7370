@@ -1,5 +1,5 @@
 {
-	"name": "STG_DS",
+	"name": "Late_arrival_DS",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_SNF_ALPHA",
