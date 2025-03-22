@@ -19,29 +19,73 @@
 					"name": "sourceCustomer2"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Late_arrival_DS",
+						"type": "DatasetReference"
+					},
+					"name": "sinkCustomerDim"
+				}
+			],
 			"transformations": [
 				{
 					"name": "lookup1"
 				},
 				{
 					"name": "split1"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          CUSTOMER_SK as decimal(38,0),",
+				"          CUSTOMER_ID as decimal(38,0),",
+				"          CUSTOMER_NAME as string,",
+				"          DI_CREATEDDT as timestamp,",
+				"          PID as string,",
+				"          IS_INFERRED as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'table') ~> sourceDimCustomer",
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          CUSTOMERID as decimal(38,0),",
+				"          CUSTOMERNAME as string,",
+				"          BILLTO as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'table') ~> sourceCustomer2",
 				"sourceDimCustomer, sourceCustomer2 lookup(CUSTOMERID == CUSTOMER_ID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup1",
-				"lookup1 split(equals(IS_INFERRED, true())\r",
+				"lookup1 split(IS_INFERRED == true()\r",
 				",",
-				"     disjoint: false) ~> split1@(Unmatched, )"
+				"     disjoint: false) ~> split1@(Unmatched, Matched)",
+				"split1@Unmatched derive(CUSTOMER_NAME = CUSTOMERNAME,",
+				"          IS_INFERRED = false()) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          CUSTOMER_SK,",
+				"          CUSTOMER_ID,",
+				"          CUSTOMER_NAME,",
+				"          DI_CREATEDDT,",
+				"          PID,",
+				"          IS_INFERRED",
+				"     )) ~> sinkCustomerDim"
 			]
 		}
 	}
