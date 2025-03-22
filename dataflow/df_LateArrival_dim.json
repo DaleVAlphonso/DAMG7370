@@ -1,0 +1,61 @@
+{
+	"name": "df_LateArrival_dim",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Late_arrival_DS",
+						"type": "DatasetReference"
+					},
+					"name": "sourceDimCustomer"
+				},
+				{
+					"dataset": {
+						"referenceName": "Late_arrival_DS",
+						"type": "DatasetReference"
+					},
+					"name": "sourceCustomer2"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "split1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CUSTOMERID as decimal(38,0),",
+				"          CUSTOMERNAME as string,",
+				"          BILLTO as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> sourceDimCustomer",
+				"source(output(",
+				"          CUSTOMER_SK as decimal(38,0),",
+				"          CUSTOMER_ID as decimal(38,0),",
+				"          CUSTOMER_NAME as string,",
+				"          DI_CREATEDDT as timestamp,",
+				"          PID as string,",
+				"          IS_INFERRED as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> sourceCustomer2",
+				"sourceDimCustomer, sourceCustomer2 lookup(CUSTOMERID == CUSTOMER_ID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1 split(equals(IS_INFERRED, true())\r",
+				",",
+				"     disjoint: false) ~> split1@(Unmatched, )"
+			]
+		}
+	}
+}
