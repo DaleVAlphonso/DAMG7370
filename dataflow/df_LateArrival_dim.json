@@ -37,6 +37,9 @@
 				},
 				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "split1"
 				}
 			],
 			"scriptLines": [
@@ -63,9 +66,11 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup1",
-				"lookup1 alterRow(upsertIf(IS_INFERRED == true())) ~> AlterRow1",
+				"split1@Unmatched alterRow(upsertIf(IS_INFERRED == true())) ~> AlterRow1",
 				"AlterRow1 derive(IS_INFERRED = false(),",
 				"          CUSTOMER_NAME = CUSTOMERNAME) ~> derivedColumn1",
+				"lookup1 split(IS_INFERRED == true(),",
+				"     disjoint: false) ~> split1@(Unmatched, Matched)",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
