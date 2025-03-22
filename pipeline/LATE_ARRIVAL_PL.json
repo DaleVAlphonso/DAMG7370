@@ -87,6 +87,8 @@
 			{
 				"name": "load_Fact",
 				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Load_Customer_Initial",
@@ -123,6 +125,51 @@
 							"sinkExsitingCustomers": {
 								"schema": "SALES_SCH",
 								"tableName": "FCT_INVOICE"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "load_Fact",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_LateArrival_dim",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sourceDimCustomer": {
+								"schema": "SALES_SCH",
+								"tableName": "DIM_CUSTOMER"
+							},
+							"sourceCustomer2": {
+								"schema": "SALES_SCH",
+								"tableName": "STAGE_CUSTOMER_PART2_DATA"
+							},
+							"sinkCustomerDim": {
+								"schema": "SALES_SCH",
+								"tableName": "DIM_CUSTOMER"
 							}
 						}
 					},
