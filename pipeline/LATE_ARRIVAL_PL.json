@@ -85,8 +85,6 @@
 			{
 				"name": "load_Fact",
 				"type": "ExecuteDataFlow",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Load_Customer_Initial",
