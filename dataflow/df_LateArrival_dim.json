@@ -30,7 +30,7 @@
 			],
 			"transformations": [
 				{
-					"name": "lookup1"
+					"name": "lookupCustomer"
 				},
 				{
 					"name": "AlterRow1"
@@ -65,11 +65,13 @@
 				"sourceDimCustomer, sourceCustomer2 lookup(CUSTOMERID == CUSTOMER_ID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
-				"     broadcast: 'auto')~> lookup1",
+				"     broadcast: 'auto')~> lookupCustomer",
 				"split1@Unmatched alterRow(upsertIf(IS_INFERRED == true())) ~> AlterRow1",
 				"AlterRow1 derive(IS_INFERRED = false(),",
-				"          CUSTOMER_NAME = CUSTOMERNAME) ~> derivedColumn1",
-				"lookup1 split(IS_INFERRED == true(),",
+				"          CUSTOMER_NAME = CUSTOMERNAME,",
+				"          DI_CREATEDDT = currentDate(),",
+				"          PID = uuid()) ~> derivedColumn1",
+				"lookupCustomer split(IS_INFERRED == true(),",
 				"     disjoint: false) ~> split1@(Unmatched, Matched)",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
