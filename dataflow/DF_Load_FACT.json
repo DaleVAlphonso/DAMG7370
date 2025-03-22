@@ -1,0 +1,126 @@
+{
+	"name": "DF_Load_FACT",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Late_arrival_DS",
+						"type": "DatasetReference"
+					},
+					"name": "sourceSales"
+				},
+				{
+					"dataset": {
+						"referenceName": "Late_arrival_DS",
+						"type": "DatasetReference"
+					},
+					"name": "sourceCustomer"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Late_arrival_DS",
+						"type": "DatasetReference"
+					},
+					"name": "sinkMissingCustomers"
+				},
+				{
+					"dataset": {
+						"referenceName": "Late_arrival_DS",
+						"type": "DatasetReference"
+					},
+					"name": "sinkExsitingCustomers"
+				}
+			],
+			"transformations": [
+				{
+					"name": "LookUpCustomer"
+				},
+				{
+					"name": "ConditionalSplit"
+				},
+				{
+					"name": "additionalColumns"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          INVOICEID as decimal(38,0),",
+				"          CUSTOMERID as decimal(38,0),",
+				"          INVOICEDATE as date,",
+				"          SHIPTO as string,",
+				"          SHIPTO_CITY as string,",
+				"          SHIPTO_COUNTRY as string,",
+				"          SALESPERSONPERSONID as decimal(38,0),",
+				"          SALESPERSONNAME as string,",
+				"          TOTAL_PRODUCT_CNT as decimal(38,0),",
+				"          TOTAL as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> sourceSales",
+				"source(output(",
+				"          CUSTOMER_SK as decimal(38,0),",
+				"          CUSTOMER_ID as decimal(38,0),",
+				"          CUSTOMER_NAME as string,",
+				"          DI_CREATEDDT as timestamp,",
+				"          PID as string,",
+				"          IS_INFERRED as boolean",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table') ~> sourceCustomer",
+				"sourceSales, sourceCustomer lookup(CUSTOMERID == CUSTOMER_ID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> LookUpCustomer",
+				"LookUpCustomer split(!isNull(CUSTOMER_ID),",
+				"     disjoint: false) ~> ConditionalSplit@(ExistingCustomers, InferredCustomers)",
+				"ConditionalSplit@ExistingCustomers derive(DI_CreatedDt = currentDate(),",
+				"          PID = uuid()) ~> additionalColumns",
+				"ConditionalSplit@InferredCustomers derive(CUSTOMER_NAME = \"UNKNOWN\",",
+				"          IS_INFERRED = true()) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          CUSTOMERID,",
+				"          CUSTOMER_NAME,",
+				"          IS_INFERRED",
+				"     )) ~> sinkMissingCustomers",
+				"additionalColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          INVOICE_ID = INVOICEID,",
+				"          CUSTOMER_ID,",
+				"          INVOICE_DT = INVOICEDATE,",
+				"          TOTAL_PRODUCT_CNT,",
+				"          TOTAL_PRODUCT_COST = TOTAL,",
+				"          PID,",
+				"          DI_CREATEDDT = additionalColumns@DI_CreatedDt",
+				"     )) ~> sinkExsitingCustomers"
+			]
+		}
+	}
+}
