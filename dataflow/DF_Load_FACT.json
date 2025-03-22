@@ -97,7 +97,7 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     stageInsert: true,",
 				"     mapColumn(",
-				"          CUSTOMERID,",
+				"          CUSTOMER_ID = CUSTOMERID,",
 				"          CUSTOMER_NAME,",
 				"          IS_INFERRED",
 				"     )) ~> sinkMissingCustomers",
