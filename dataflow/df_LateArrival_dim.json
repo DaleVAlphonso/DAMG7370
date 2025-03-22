@@ -33,7 +33,7 @@
 					"name": "lookup1"
 				},
 				{
-					"name": "split1"
+					"name": "AlterRow1"
 				},
 				{
 					"name": "derivedColumn1"
@@ -63,17 +63,15 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup1",
-				"lookup1 split(IS_INFERRED == true()\r",
-				",",
-				"     disjoint: false) ~> split1@(Unmatched, Matched)",
-				"split1@Unmatched derive(CUSTOMER_NAME = CUSTOMERNAME,",
-				"          IS_INFERRED = false()) ~> derivedColumn1",
+				"lookup1 alterRow(upsertIf(IS_INFERRED == true())) ~> AlterRow1",
+				"AlterRow1 derive(IS_INFERRED = false(),",
+				"          CUSTOMER_NAME = CUSTOMERNAME) ~> derivedColumn1",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
-				"     insertable:true,",
+				"     insertable:false,",
 				"     updateable:false,",
-				"     upsertable:false,",
+				"     upsertable:true,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
