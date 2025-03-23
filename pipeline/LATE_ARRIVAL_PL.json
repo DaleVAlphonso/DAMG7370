@@ -132,7 +132,7 @@
 				}
 			},
 			{
-				"name": "Data flow1",
+				"name": "Customer_part2 Load",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
